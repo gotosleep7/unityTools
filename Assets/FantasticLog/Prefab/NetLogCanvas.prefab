@@ -112,6 +112,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LogController
       objectReference: {fileID: 0}
+    - target: {fileID: 5176303490868371396, guid: b56c8e2c6622c2a408dd5121bed9e6ac, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5481732916475816147, guid: b56c8e2c6622c2a408dd5121bed9e6ac, type: 3}
       propertyPath: BtnParent
       value: 
