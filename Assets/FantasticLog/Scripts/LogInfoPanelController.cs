@@ -16,6 +16,7 @@ namespace FantasticLog
         Button CaptureBtn;
         Toggle WsConnectBtn;
         Toggle NetLogBtn;
+        Toggle SetHandlerBtn;
         public string user;
         public string address;
         public int port;
@@ -26,7 +27,7 @@ namespace FantasticLog
         public string WsUrl => $"ws://{address}:{port}";
         public string User => user;
 
-
+        ILogHandler sourceLogHandler;
         // Start is called before the first frame update
         void Start()
         {
@@ -39,6 +40,7 @@ namespace FantasticLog
             LocalLogBtn = BtnParent.Find("LocalLog").GetComponent<Toggle>();
             WsConnectBtn = BtnParent.Find("WsConnect").GetComponent<Toggle>();
             NetLogBtn = BtnParent.Find("NetLog").GetComponent<Toggle>();
+            SetHandlerBtn = BtnParent.Find("CustomLogHandler").GetComponent<Toggle>();
 
 
 
@@ -55,6 +57,23 @@ namespace FantasticLog
             WsConnectBtn.onValueChanged.AddListener(OnWsConnect);
             LocalLogBtn.onValueChanged.AddListener(OnLocalLog);
             NetLogBtn.onValueChanged.AddListener(OnNetLog);
+            SetHandlerBtn.onValueChanged.AddListener(OnSetHandleBtn);
+
+            sourceLogHandler = Debug.unityLogger.logHandler;
+        }
+
+        private void OnSetHandleBtn(bool isOn)
+        {
+            if (isOn)
+            {
+                Debug.unityLogger.logHandler = LocalOrNetLogHandler.Instance;
+                Debug.unityLogger.logEnabled = true;
+            }
+            else
+            {
+                Debug.unityLogger.logHandler = sourceLogHandler;
+            }
+
         }
 
         private async void OnWsConnect(bool isOn)
