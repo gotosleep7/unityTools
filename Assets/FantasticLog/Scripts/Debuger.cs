@@ -17,7 +17,8 @@ namespace FantasticLog
 
         public void LogException(System.Exception exception, Object context)
         {
-            m_DefaultLogHandler.LogException(exception, context);
+            if (Log2Local) m_DefaultLogHandler.LogException(exception, context);
+            HttpLogLogic.Instance.SendLog($"{exception.Message}\r\n{exception.StackTrace}");
         }
 
         public void LogFormat(LogType logType, Object context, string format, params object[] args)
