@@ -3,6 +3,8 @@ using UnityEditor;
 using UnityEngine;
 namespace FantasticLog
 {
+#if UNITY_EDITOR
+    
     public class LogTools : Editor
     {
         [MenuItem("FantasticLog/Copy path")]
@@ -20,5 +22,6 @@ namespace FantasticLog
             EditorGUIUtility.systemCopyBuffer = path.ToString();
         }
     }
+#endif
 }
 

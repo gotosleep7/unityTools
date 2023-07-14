@@ -14,5 +14,11 @@ namespace FantasticLog
         // {
         //     Debug.Log("test log");
         // }
+        // [ContextMenu("GetDebugerMenu")]
+        // public void GetDebugerMenu()
+        // {
+        //     Debug.unityLogger.logHandler = LocalOrNetLogHandler.Instance;
+        //     Debug.unityLogger.logEnabled = true;
+        // }
     }
 }

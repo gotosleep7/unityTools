@@ -11,17 +11,19 @@ namespace FantasticLog
         TMPro.TMP_InputField portText;
         [SerializeField] RectTransform BtnParent;
         [SerializeField] RectTransform Parent;
+        GameObject MiniPad;
         Button SetBtn;
         Toggle LocalLogBtn;
         Button CaptureBtn;
         Toggle WsConnectBtn;
         Toggle NetLogBtn;
         Toggle SetHandlerBtn;
+        Toggle MiniPadBtn;
         public string user;
         public string address;
         public int port;
-        public bool logEnable;
-        public bool isNetLogEnable;
+        public static bool logEnable;
+        public static bool isNetLogEnable;
 
         public string Url => $"http://{address}:{port}";
         public string WsUrl => $"ws://{address}:{port}";
@@ -31,9 +33,10 @@ namespace FantasticLog
         // Start is called before the first frame update
         void Start()
         {
-            userText = Parent.Find("name").GetComponent<TMPro.TMP_InputField>();
+            userText = Parent.Find("user").GetComponent<TMPro.TMP_InputField>();
             addressText = Parent.Find("address").GetComponent<TMPro.TMP_InputField>();
             portText = Parent.Find("port").GetComponent<TMPro.TMP_InputField>();
+            MiniPad = Parent.Find("MiniPad").gameObject;
 
             SetBtn = BtnParent.Find("SetBtn").GetComponent<Button>();
             CaptureBtn = BtnParent.Find("Capture").GetComponent<Button>();
@@ -41,6 +44,7 @@ namespace FantasticLog
             WsConnectBtn = BtnParent.Find("WsConnect").GetComponent<Toggle>();
             NetLogBtn = BtnParent.Find("NetLog").GetComponent<Toggle>();
             SetHandlerBtn = BtnParent.Find("CustomLogHandler").GetComponent<Toggle>();
+            MiniPadBtn = BtnParent.Find("MiniPadBtn").GetComponent<Toggle>();
 
 
 
@@ -58,8 +62,14 @@ namespace FantasticLog
             LocalLogBtn.onValueChanged.AddListener(OnLocalLog);
             NetLogBtn.onValueChanged.AddListener(OnNetLog);
             SetHandlerBtn.onValueChanged.AddListener(OnSetHandleBtn);
+            MiniPadBtn.onValueChanged.AddListener(OnMiniPadBtn);
 
             sourceLogHandler = Debug.unityLogger.logHandler;
+        }
+
+        private void OnMiniPadBtn(bool isOn)
+        {
+            MiniPad.SetActive(isOn);
         }
 
         private void OnSetHandleBtn(bool isOn)

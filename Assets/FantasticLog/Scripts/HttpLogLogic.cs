@@ -80,7 +80,7 @@ namespace FantasticLog
             try
             {
                 // 创建HttpClient实例
-                if (!logInfoPanelController.isNetLogEnable) return;
+                if (!LogInfoPanelController.isNetLogEnable) return;
                 if (!IsUrl(logInfoPanelController.Url)) return;
                 // 创建一个JSON对象
                 MsgDat json = new MsgDat();
