@@ -20,5 +20,15 @@ namespace FantasticLog
         //     Debug.unityLogger.logHandler = LocalOrNetLogHandler.Instance;
         //     Debug.unityLogger.logEnabled = true;
         // }
+        // private void Update()
+        // {
+        //     Debug.Log("lkjlkjlkj");
+
+        // }
+
+        // private void FixedUpdate()
+        // {
+        //     // throw new System.Exception("error jjjjjj");
+        // }
     }
 }
