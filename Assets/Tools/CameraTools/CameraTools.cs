@@ -6,6 +6,7 @@ public class CameraTools : MonoBehaviour
 {
     Camera mainCamera;
     public Transform target;
+    public float offsetRate = 0.2f;
     // Start is called before the first frame update
     void Start()
     {
@@ -23,7 +24,7 @@ public class CameraTools : MonoBehaviour
             float targetWidth = Mathf.Abs(target.localScale.x);
             float targetHeight = Mathf.Abs(target.localScale.y);
 
-            var size = CalculateCameraOrthographicSize(viewWidth, viewHeight, targetWidth, targetHeight, 0.2f);
+            var size = CalculateCameraOrthographicSize3(viewWidth, viewHeight, targetWidth, targetHeight, offsetRate);
             mainCamera.orthographicSize = size;
             var cameraPos = mainCamera.transform.position;
             cameraPos.x = target.position.x;
@@ -32,6 +33,35 @@ public class CameraTools : MonoBehaviour
 
         }
     }
+    #region 1.0
+    public float CalculateCameraOrthographicSize3(float viewWidth, float viewHeight, float targetWidth, float targetHeight, float offsetRate = 0.1f)
+    {
+        // 计算出目标高度在屏幕分辨率下的高度是多少
+        // 计算目标宽高中的较大值
+        float retSize = targetWidth * viewHeight / viewWidth;
+        return (retSize > targetHeight ? retSize : targetHeight) * 0.5f;
+    }
+    #endregion
+
+    #region 2.0
+    public float CalculateCameraOrthographicSize2(float viewWidth, float viewHeight, float targetWidth, float targetHeight, float offsetRate = 0.1f)
+    {
+        float viewAspect = viewWidth / viewHeight;
+        float targetAspect = targetWidth / targetHeight;
+        // 计算目标宽高中的较大值
+        float retSize;
+        if (targetAspect > viewAspect)
+        {
+            retSize = targetWidth * viewHeight / viewWidth * 0.5f;
+        }
+        else
+        {
+            retSize = targetHeight / 2;
+        }
+        return retSize;
+    }
+    #endregion
+    #region 1.0
     /// <summary>
     /// 根据传入参数，计算正交相机要在某个分辨率下，完整显示某个区域所需的size。
     /// </summary>
@@ -95,9 +125,10 @@ public class CameraTools : MonoBehaviour
     // 根据视口宽高比和目标宽高比计算摄像机正交大小
     private static float CalcSize(float tmpSize, float viewWidth, float viewHeight)
     {
+        // 100 * 800 / 480
         // 通过将临时尺寸乘以视口高度除以视口宽度，计算摄像机正交大小
         return tmpSize * viewHeight / viewWidth;
     }
-
+    #endregion
 }
 
