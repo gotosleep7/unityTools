@@ -86,7 +86,7 @@ namespace FantasticLog
         {
             //备用
             string msgType = dataMsg[1];
-            string[] path = dataMsg[2].Split("-");
+            string[] path = dataMsg[2].Split(",");
             int valueType = int.Parse(dataMsg[3]);
             string fieldName = dataMsg[4];
             string value = dataMsg[5];
