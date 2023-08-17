@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using QFramework;
-using qin_makeface;
 using UnityEngine;
 
 
@@ -9,14 +8,6 @@ namespace QFramework
 {
 
     public abstract class BaseController : MonoBehaviour, IController
-    {
-        public IArchitecture GetArchitecture()
-        {
-            return BaseArchitecture.Interface;
-        }
-    }
-
-    public abstract class BaseControllerForPanel : BasePanel, IController
     {
         public IArchitecture GetArchitecture()
         {

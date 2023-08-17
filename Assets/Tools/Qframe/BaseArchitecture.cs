@@ -1,19 +1,16 @@
 using QFramework;
 
-namespace xxx
+public class BaseArchitecture : Architecture<BaseArchitecture>
 {
-    public class BaseArchitecture : Architecture<BaseArchitecture>
+    protected override void Init()
     {
-        protected override void Init()
-        {
-        }
+    }
 
-        private void InitModel()
-        {
-        }
+    private void InitModel()
+    {
+    }
 
-        private void InitSystem()
-        {
-        }
+    private void InitSystem()
+    {
     }
 }
