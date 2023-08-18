@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
+
 namespace FantasticLog
 {
     public class WsLogLogic : MonoBehaviour
@@ -14,6 +16,7 @@ namespace FantasticLog
         bool connectFlag;
         ClientWebSocket wsClient;
         LogInfoPanelController logInfoController;
+        public UnityEvent<string> OnRecieve;
         private void Awake()
         {
             Instance = this;
@@ -49,7 +52,7 @@ namespace FantasticLog
                     }
                     catch (WebSocketException ex)
                     {
-                        Debuger.LogWarning("WebSocket连接异常：" + ex.Message);
+                        Debug.LogWarning("WebSocket连接异常：" + ex.Message);
                     }
                     if (!connectFlag) break;
                     // 等待一段时间后进行重连
@@ -62,9 +65,10 @@ namespace FantasticLog
         {
             try
             {
-                Debuger.Log($"message={message}");
+                OnRecieve?.Invoke(message);
+                Debug.Log($"message={message}");
                 string[] strings = message.Split("|");
-                if (strings.Length != 7) return;
+                if (strings.Length < 2) return;
                 //备用
                 string msgType = strings[1];
                 switch (msgType)
@@ -78,7 +82,7 @@ namespace FantasticLog
             }
             catch (System.Exception e)
             {
-                Debuger.LogWarning(e.Message);
+                Debug.LogWarning(e.Message);
             }
         }
 

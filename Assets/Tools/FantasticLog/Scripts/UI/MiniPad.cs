@@ -10,10 +10,12 @@ public class MiniPad : MonoBehaviour
     public Button userBtn;
     public Button addressBtn;
     public Button portBtn;
+    public Button serverPortBtn;
     public TMPro.TMP_Text inputText;
     public TMPro.TMP_InputField user;
     public TMPro.TMP_InputField address;
     public TMPro.TMP_InputField port;
+    public TMPro.TMP_InputField serverPort;
 
     public
     // Start is called before the first frame update
@@ -22,8 +24,13 @@ public class MiniPad : MonoBehaviour
         userBtn.onClick.AddListener(OnClickUser);
         addressBtn.onClick.AddListener(OnClickIp);
         portBtn.onClick.AddListener(OnClickPort);
+        serverPortBtn.onClick.AddListener(OnClickServerPort);
     }
 
+    private void OnClickServerPort()
+    {
+        serverPort.text = inputText.text;
+    }
     private void OnClickPort()
     {
         port.text = inputText.text;

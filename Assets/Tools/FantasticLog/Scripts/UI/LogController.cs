@@ -10,10 +10,10 @@ namespace FantasticLog
         //     Debug.unityLogger.logEnabled = true;
         // }
 
-        // private void Update()
-        // {
-        //     Debug.Log("test log");
-        // }
+        private void Update()
+        {
+            // Debug.Log("test log");
+        }
         // [ContextMenu("GetDebugerMenu")]
         // public void GetDebugerMenu()
         // {

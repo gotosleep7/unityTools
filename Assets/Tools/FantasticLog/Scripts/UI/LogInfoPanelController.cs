@@ -9,6 +9,7 @@ namespace FantasticLog
         TMPro.TMP_InputField userText;
         TMPro.TMP_InputField addressText;
         TMPro.TMP_InputField portText;
+        TMPro.TMP_InputField serverPortText;
         [SerializeField] RectTransform BtnParent;
         [SerializeField] RectTransform Parent;
         GameObject MiniPad;
@@ -19,9 +20,11 @@ namespace FantasticLog
         Toggle NetLogBtn;
         Toggle SetHandlerBtn;
         Toggle MiniPadBtn;
+        Toggle SockerServerBtn;
         public string user;
         public string address;
         public int port;
+        public int serverPort;
         public static bool logEnable;
         public static bool isNetLogEnable;
 
@@ -36,6 +39,7 @@ namespace FantasticLog
             userText = Parent.Find("user").GetComponent<TMPro.TMP_InputField>();
             addressText = Parent.Find("address").GetComponent<TMPro.TMP_InputField>();
             portText = Parent.Find("port").GetComponent<TMPro.TMP_InputField>();
+            serverPortText = Parent.Find("serverPort").GetComponent<TMPro.TMP_InputField>();
             MiniPad = Parent.Find("MiniPad").gameObject;
 
             SetBtn = BtnParent.Find("SetBtn").GetComponent<Button>();
@@ -45,16 +49,18 @@ namespace FantasticLog
             NetLogBtn = BtnParent.Find("NetLog").GetComponent<Toggle>();
             SetHandlerBtn = BtnParent.Find("CustomLogHandler").GetComponent<Toggle>();
             MiniPadBtn = BtnParent.Find("MiniPadBtn").GetComponent<Toggle>();
+            SockerServerBtn = BtnParent.Find("SockerServerBtn").GetComponent<Toggle>();
 
 
-
-            user = PlayerPrefs.GetString("user");
-            address = PlayerPrefs.GetString("address");
-            port = PlayerPrefs.GetInt("port");
+            user = PlayerPrefs.GetString("user", "user1");
+            address = PlayerPrefs.GetString("address", "127.0.0.1");
+            port = PlayerPrefs.GetInt("port", 8888);
+            serverPort = PlayerPrefs.GetInt("serverPort", 9999);
 
             userText.text = user;
             addressText.text = address;
             portText.text = port.ToString();
+            serverPortText.text = serverPort.ToString();
 
             SetBtn.onClick.AddListener(SetIpAndPort);
             CaptureBtn.onClick.AddListener(OnCapture);
@@ -63,8 +69,17 @@ namespace FantasticLog
             NetLogBtn.onValueChanged.AddListener(OnNetLog);
             SetHandlerBtn.onValueChanged.AddListener(OnSetHandleBtn);
             MiniPadBtn.onValueChanged.AddListener(OnMiniPadBtn);
+            SockerServerBtn.onValueChanged.AddListener(OnSockerServerBtn);
 
             sourceLogHandler = Debug.unityLogger.logHandler;
+        }
+
+        private void OnSockerServerBtn(bool isOn)
+        {
+            if (isOn)
+                SocketManager.Instance.OpenSocketServer(address, serverPort);
+            else
+                SocketManager.Instance.CloseSocketServer();
         }
 
         private void OnMiniPadBtn(bool isOn)
