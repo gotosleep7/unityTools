@@ -20,6 +20,7 @@ namespace FantasticLog
         public Color color;
         public float updateRate;
         public bool isSync;
+
         private string messageType = "1";
         public float timer;
         private void Update()

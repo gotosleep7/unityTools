@@ -1,6 +1,7 @@
 
 using System;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +61,7 @@ namespace FantasticLog
                 }
             }
         }
-
+        [ContextMenu("HandleMessage")]
         public void HandleMessage(string message)
         {
             try
@@ -77,6 +78,7 @@ namespace FantasticLog
                         HandleMaterial(strings);
                         break;
                     case "2":
+                        HandleComponent(strings);
                         break;
                 }
             }
@@ -85,6 +87,32 @@ namespace FantasticLog
                 Debug.LogWarning(e.Message);
             }
         }
+
+        private void HandleComponent(string[] dataMsg)
+        {
+            //  string a = "userid|1|xxx,xx,xx|class.fullname|methodname|parpm1,parpm1,parpm1,parpm1";
+            string[] path = dataMsg[2].Split(",");
+            string classFunllName = dataMsg[3];
+            string methodName = dataMsg[4];
+            object[] parames = dataMsg[5]?.Split(",");
+            Type classType = Type.GetType(classFunllName);
+            System.Reflection.MethodInfo methodInfo = classType.GetMethod(methodName);
+            GameObject target = GetTarget(path);
+            Component component = target.GetComponent(classType);
+            methodInfo.Invoke(component, parames);
+
+        }
+
+        public GameObject GetTarget(string[] path)
+        {
+            Transform root = GameObject.Find(path[0]).transform;
+            for (int i = 1; i < path.Length; i++)
+            {
+                root = root.transform.Find(path[i]);
+            }
+            return root.gameObject;
+        }
+
 
         public void HandleMaterial(string[] dataMsg)
         {
