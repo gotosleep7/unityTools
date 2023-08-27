@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
-
+using System.Linq;
 namespace FantasticLog
 {
     public class WsLogLogic : MonoBehaviour
@@ -15,9 +16,12 @@ namespace FantasticLog
         public static WsLogLogic Instance;
 
         bool connectFlag;
-        ClientWebSocket wsClient;
+        static ClientWebSocket wsClient;
         LogInfoPanelController logInfoController;
         public UnityEvent<string> OnRecieve;
+        Dictionary<string, Type> cachedTypes = new Dictionary<string, Type>();
+        Dictionary<string, System.Reflection.MethodInfo> cachedMethods = new();
+        Queue<string> messageQueue = new Queue<string>();
         private void Awake()
         {
             Instance = this;
@@ -40,15 +44,14 @@ namespace FantasticLog
                         // 接收消息的循环
                         while (wsClient.State == WebSocketState.Open)
                         {
-                            connectFlag = true;
-                            byte[] buffer = new byte[1024];
+                            byte[] buffer = new byte[4096];
                             WebSocketReceiveResult result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                             if (result.MessageType == WebSocketMessageType.Text)
                             {
                                 string message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
-
                                 HandleMessage(message);
                             }
+                            connectFlag = true;
                         }
                     }
                     catch (WebSocketException ex)
@@ -61,49 +64,138 @@ namespace FantasticLog
                 }
             }
         }
-        [ContextMenu("HandleMessage")]
-        public void HandleMessage(string message)
+
+
+        private void LateUpdate()
         {
+            // Debug.Log($"messageQueue.Count={messageQueue.Count}");
+            int count = messageQueue.Count;
+            if (count > 0)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    DoSendWsMessage(messageQueue.Dequeue());
+                }
+            }
+
+        }
+
+        private async void DoSendWsMessage(string message)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(message);
+            var buffer = new ArraySegment<byte>(bytes);
             try
             {
-                OnRecieve?.Invoke(message);
-                Debug.Log($"message={message}");
-                string[] strings = message.Split("|");
-                if (strings.Length < 2) return;
-                //备用
-                string msgType = strings[1];
-                switch (msgType)
-                {
-                    case "1":
-                        HandleMaterial(strings);
-                        break;
-                    case "2":
-                        HandleComponent(strings);
-                        break;
-                }
+                // 创建发送的数据缓冲区
+                if (wsClient != null)
+                    await wsClient?.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning(e.Message);
+                Debug.Log($"message={message},count={message.Length}");
+                Debug.Log($"bytes={bytes},count={bytes.Length}");
+                throw e;
+
+            }
+        }
+        [ContextMenu("HandleMessage")]
+        public void HandleMessage(string data)
+        {
+            string[] messages = data.Split("\r\n");
+            foreach (var message in messages)
+            {
+                if ("".Equals(message)) continue;
+                try
+                {
+                    SyncDataModel syncDataModel = new SyncDataModel(message);
+                    switch (syncDataModel.msgType)
+                    {
+                        case 1:
+                            if (SyncDataModelForMaterial.TryConvert(syncDataModel.contentStr, out SyncDataModelForMaterial syncDataModelForMaterial))
+                                HandleMaterial(syncDataModelForMaterial);
+                            break;
+                        case 2:
+                            if (SyncDataModelForRpc.TryConvert(syncDataModel.contentStr, out SyncDataModelForRpc content))
+                                HandleComponent(content);
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.StackTrace);
+                }
+            }
+
+        }
+
+
+        private void HandleComponent(SyncDataModelForRpc syncDataModel)
+        {
+            foreach (var content in syncDataModel.dataContents)
+            {
+                if (!cachedTypes.TryGetValue(content.classFullName, out var classType))
+                {
+                    classType = Type.GetType(content.classFullName);
+                    cachedTypes[content.classFullName] = classType;
+                }
+                string key = $"{content.methodName}-{content.parmaTypes[0]}-{content.parmaTypes[content.parmaTypes.Length - 1]}";
+                if (!cachedMethods.TryGetValue(key, out var methodInfo))
+                {
+                    methodInfo = classType.GetMethod(content.methodName, content.parmaTypes);
+                    if (methodInfo != null) cachedMethods[key] = methodInfo;
+                }
+                if (!cachedGameObjects.TryGetValue(content.sourcePath, out GameObject target))
+                {
+                    target = GetTarget(content.path);
+                    cachedGameObjects[content.sourcePath] = target;
+                }
+                Component targetComponent = target.GetComponent(classType);
+                methodInfo.Invoke(targetComponent, content.parmas);
             }
         }
 
-        private void HandleComponent(string[] dataMsg)
+        Dictionary<string, Material> cachedMaterials = new Dictionary<string, Material>();
+        Dictionary<string, GameObject> cachedGameObjects = new Dictionary<string, GameObject>();
+        public void HandleMaterial(SyncDataModelForMaterial syncDataModel)
         {
-            //  string a = "userid|1|xxx,xx,xx|class.fullname|methodname|parpm1,parpm1,parpm1,parpm1";
-            string[] path = dataMsg[2].Split(",");
-            string classFunllName = dataMsg[3];
-            string methodName = dataMsg[4];
-            object[] parames = dataMsg[5]?.Split(",");
-            Type classType = Type.GetType(classFunllName);
-            System.Reflection.MethodInfo methodInfo = classType.GetMethod(methodName);
-            GameObject target = GetTarget(path);
-            Component component = target.GetComponent(classType);
-            methodInfo.Invoke(component, parames);
+            foreach (var content in syncDataModel.dataContents)
+            {
+                if (!cachedGameObjects.TryGetValue(content.sourcePath, out GameObject target))
+                {
+                    target = GetTarget(content.path);
+                    cachedGameObjects[content.sourcePath] = target;
+                }
+                if (!cachedMaterials.TryGetValue(content.sourcePath, out Material material))
+                {
+                    if (target.TryGetComponent(out MeshRenderer mr))
+                    {
+                        Material m = new Material(mr.material);
+                        cachedMaterials[content.sourcePath] = m;
+                        mr.material = m;
+                        material = m;
+                    }
 
+                }
+                foreach (var param in content.paramArr)
+                {
+
+                    switch (param.valueType)
+                    {
+                        case MaterialContentParamType.F:
+
+                            material.SetFloat(param.fieldName, float.Parse(param.value));
+                            break;
+                        case MaterialContentParamType.C:
+                            string[] rgbaColor = param.value.Split(',');
+                            material.SetColor(param.fieldName, new Color(float.Parse(rgbaColor[0]), float.Parse(rgbaColor[1]), float.Parse(rgbaColor[2]), float.Parse(rgbaColor[3])));
+                            break;
+                    }
+                }
+
+            }
         }
 
-        public GameObject GetTarget(string[] path)
+        private GameObject GetTarget(string[] path)
         {
             Transform root = GameObject.Find(path[0]).transform;
             for (int i = 1; i < path.Length; i++)
@@ -114,51 +206,15 @@ namespace FantasticLog
         }
 
 
-        public void HandleMaterial(string[] dataMsg)
+        public void SendWsMessage(string message)
         {
-            //备用
-            string msgType = dataMsg[1];
-            string[] path = dataMsg[2].Split(",");
-            int valueType = int.Parse(dataMsg[3]);
-            string fieldName = dataMsg[4];
-            string value = dataMsg[5];
-            string[] rgbaColor = dataMsg[6].Split(",");
+            // Debug.Log($"messageQueue={messageQueue.Count}");
+            // if (messageQueue.TryPeek(out string msg))
+            // {
+            //     if (message.Equals(msg)) return;
+            // }
+            messageQueue.Enqueue(message);
 
-            GameObject target;
-            Transform root = GameObject.Find(path[0]).transform;
-            for (int i = 1; i < path.Length; i++)
-            {
-                root = root.transform.Find(path[i]);
-            }
-            target = root.gameObject;
-            MeshRenderer mr = target.GetComponent<MeshRenderer>();
-            switch (valueType)
-            {
-                case 0:
-                    mr.material.SetFloat(fieldName, float.Parse(value));
-                    break;
-                case 1:
-                    mr.sharedMaterial.SetColor(fieldName, new Color(float.Parse(rgbaColor[0]), float.Parse(rgbaColor[1]), float.Parse(rgbaColor[2]), float.Parse(rgbaColor[3])));
-                    break;
-            }
-        }
-
-        public async void SendWsMessage(string message)
-        {
-            try
-            {
-                byte[] bytes = Encoding.UTF8.GetBytes(message);
-
-                // 创建发送的数据缓冲区
-                var buffer = new ArraySegment<byte>(bytes);
-                await wsClient?.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
-
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError(e);
-
-            }
         }
 
         public async void CloseWebsocket()
@@ -180,3 +236,4 @@ namespace FantasticLog
         }
     }
 }
+

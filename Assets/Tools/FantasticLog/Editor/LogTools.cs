@@ -4,7 +4,7 @@ using UnityEngine;
 namespace FantasticLog
 {
 #if UNITY_EDITOR
-    
+
     public class LogTools : Editor
     {
         [MenuItem("FantasticLog/Copy path")]
@@ -16,7 +16,7 @@ namespace FantasticLog
 
             while (parent != null)
             {
-                path.Insert(0, $"{parent.name}-");
+                path.Insert(0, $"{parent.name},");
                 parent = parent.parent;
             }
             EditorGUIUtility.systemCopyBuffer = path.ToString();
