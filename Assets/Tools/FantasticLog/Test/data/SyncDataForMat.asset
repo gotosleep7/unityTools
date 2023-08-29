@@ -12,5 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64b7733f29ba78748820a866bfb15355, type: 3}
   m_Name: SyncDataForMat
   m_EditorClassIdentifier: 
-  targetUser: user2
-  dataList: []
+  targetUser: user1
+  dataList:
+  - enableSync: 1
+    path: Sample,Sphere
+    args:
+    - enable: 1
+      fieldName: _BaseColor
+      valueType: 2
+      fvalue: 0
+      color: {r: 0.29908466, g: 0.98039216, b: 0, a: 0}

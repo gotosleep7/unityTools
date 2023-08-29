@@ -54,11 +54,13 @@ namespace FantasticLog
         public string targetUser;
         public List<SyncDataForMatItem> dataList;
 
-        public override bool TryConvertInfo(out string message)
+        StringBuilder contentBuilder = new StringBuilder();
+        StringBuilder argsBuilder = new StringBuilder();
+
+        public override bool TryConvertInfo(ref StringBuilder dataStr)
         {
-            StringBuilder dataStr = new StringBuilder();
-            StringBuilder contentBuilder = new StringBuilder();
-            StringBuilder argsBuilder = new StringBuilder();
+            contentBuilder.Clear();
+            argsBuilder.Clear();
 
             dataStr.Clear();
             // dataStr.Append($"{targetUser}|1|");
@@ -89,13 +91,12 @@ namespace FantasticLog
             }
             if (contentBuilder.Length < 1)
             {
-                message = "";
+                dataStr.Clear();
                 return false;
             }
             else
             {
                 dataStr.Append($"{targetUser}|1|").Append(contentBuilder);
-                message = dataStr.ToString();
                 return true;
             }
         }

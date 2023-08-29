@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 443d450c6d0db704a9ee4a5a99ee185d, type: 3}
   m_Name: SyncData
   m_EditorClassIdentifier: 
-  targetUser: user2
+  targetUser: user1
   dataList:
   - path: Sample,Cube
     className: TestForCtrl2Component
     methodName: Log
-    enable: 0
+    enable: 1
     args:
     - enable: 1
       type: 4
