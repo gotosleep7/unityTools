@@ -13,7 +13,10 @@ public class TestForCtrl2Component : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        // if (Time.frameCount % 100 == 0)
+        // {
+        //     Debug.Log("aaasf");
+        // }
     }
     public void Log(int value)
     {

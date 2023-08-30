@@ -208,11 +208,6 @@ namespace FantasticLog
 
         public void SendWsMessage(string message)
         {
-            // Debug.Log($"messageQueue={messageQueue.Count}");
-            // if (messageQueue.TryPeek(out string msg))
-            // {
-            //     if (message.Equals(msg)) return;
-            // }
             messageQueue.Enqueue(message);
 
         }

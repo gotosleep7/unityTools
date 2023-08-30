@@ -45,6 +45,7 @@ namespace FantasticLog
         LogInfoPanelController logInfoPanelController;
         static HttpClient client = new HttpClient();
         Queue<string> capture = new Queue<string>();
+
         private void Awake()
         {
             Instance = this;
@@ -75,34 +76,37 @@ namespace FantasticLog
         }
         public void SendLog(object message)
         {
-
-            try
+            if (!LogInfoPanelController.isNetLogEnable) return;
+            if (LogInfoPanelController.isWsEnable)
             {
-                // 创建HttpClient实例
-                if (!LogInfoPanelController.isNetLogEnable) return;
-                if (!IsUrl(logInfoPanelController.Url)) return;
+                WsLogLogic.Instance.SendWsMessage($"x|0|{message}");
 
+            }
+            else
+            {
                 var formContent = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "data",message.ToString()}
             });
                 client.PostAsync($"{logInfoPanelController.Url}/log", formContent);
-                // 创建一个JSON对象
-                // MsgDat json = new MsgDat();
-                // json.data = message.ToString();
-                // string jsonStr = JsonConvert.SerializeObject(json);
-                // // 构造请求内容
-                // var content = new StringContent(jsonStr, Encoding.UTF8, "application/json");
-                // 发送PUT请求
-                // client.PutAsync($"{logInfoPanelController.Url}/log", content);
-                // // 处理响应
-                // string responseBody = await response.Content.ReadAsStringAsync();
+            }
+            // try
+            // {
+            //     // 创建HttpClient实例
+            // if (!LogInfoPanelController.isNetLogEnable) return;
+            //     if (!IsUrl(logInfoPanelController.Url)) return;
 
-            }
-            catch (System.Exception e)
-            {
-                Debuger.LogWarning(e);
-            }
+            //     var formContent = new FormUrlEncodedContent(new Dictionary<string, string>
+            // {
+            //     { "data",message.ToString()}
+            // });
+            //     client.PostAsync($"{logInfoPanelController.Url}/log", formContent);
+
+            // }
+            // catch (System.Exception e)
+            // {
+            //     Debuger.LogWarning(e);
+            // }
         }
         public void SendLogErr(object message)
         {

@@ -27,6 +27,7 @@ namespace FantasticLog
         public int serverPort;
         public static bool logEnable;
         public static bool isNetLogEnable;
+        public static bool isWsEnable;
 
         public string Url => $"http://{address}:{port}";
         public string WsUrl => $"ws://{address}:{port}";
@@ -111,6 +112,7 @@ namespace FantasticLog
             {
                 WsLogLogic.Instance.CloseWebsocket();
             }
+            isWsEnable = isOn;
         }
 
         private void OnCapture()
