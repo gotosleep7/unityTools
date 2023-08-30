@@ -8,7 +8,7 @@ namespace FantasticLog
     [Serializable]
     public enum SyncParamType
     {
-        PFloat = 1, PInt, PString, PV3
+        PFloat = 1, PInt, PString, PV3, PV2
     }
     [Serializable]
     public class SyncDataParam
@@ -35,6 +35,9 @@ namespace FantasticLog
                     break;
                 case SyncParamType.PV3:
                     ret = $"{v3.x},{v3.y},{v3.z}";
+                    break;
+                case SyncParamType.PV2:
+                    ret = $"{v3.x},{v3.y}";
                     break;
             }
 

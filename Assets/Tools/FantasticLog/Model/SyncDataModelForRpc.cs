@@ -89,6 +89,12 @@ namespace FantasticLog
                             syncDataModelContent.parmas[i] = new Vector3(float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
                             syncDataModelContent.parmaTypes[i] = typeof(Vector3);
                             break;
+                        case SyncParamType.PV2:
+                            string[] xy = pValue.Split(",");
+                            if (xy.Length < 2) break;
+                            syncDataModelContent.parmas[i] = new Vector2(float.Parse(xy[0]), float.Parse(xy[1]));
+                            syncDataModelContent.parmaTypes[i] = typeof(Vector2);
+                            break;
                     }
                 }
                 contentList.Add(syncDataModelContent);
