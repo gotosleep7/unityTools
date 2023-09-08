@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetUser: user1
   dataList:
-  - path: Sample,Cube
+  - path: Front,Air,Sideair,Air_FrontLeft,Front_FL,air_F_L
     className: TestForCtrl2Component
     methodName: Log
     enable: 1
