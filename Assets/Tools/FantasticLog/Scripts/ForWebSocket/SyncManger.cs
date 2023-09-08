@@ -38,7 +38,8 @@ namespace FantasticLog
                     {
                         message.Clear();
                         syncDatas[i].TryConvertInfo(ref message);
-                        sb.Append(message).Append("\r\n");
+                        sb.Append(message);
+                        if (!sb.ToString().Equals("")) sb.Append("\r\n");
                     }
                 }
                 timer = 0;

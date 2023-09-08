@@ -74,7 +74,7 @@ namespace FantasticLog
             {
                 for (int i = 0; i < count; i++)
                 {
-                    DoSendWsMessage(messageQueue.Dequeue());
+                    if (wsClient != null) DoSendWsMessage(messageQueue.Dequeue());
                 }
             }
 
@@ -82,13 +82,16 @@ namespace FantasticLog
 
         private async void DoSendWsMessage(string message)
         {
+            if ("".Equals(message)) return;
             byte[] bytes = Encoding.UTF8.GetBytes(message);
             var buffer = new ArraySegment<byte>(bytes);
             try
             {
                 // 创建发送的数据缓冲区
-                if (wsClient != null)
+                if (wsClient != null && wsClient.State == WebSocketState.Open)
+                {
                     await wsClient?.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                }
             }
             catch (System.Exception e)
             {
@@ -163,6 +166,7 @@ namespace FantasticLog
                 if (!cachedGameObjects.TryGetValue(content.sourcePath, out GameObject target))
                 {
                     target = GetTarget(content.path);
+                    if (!target.activeInHierarchy) return;
                     cachedGameObjects[content.sourcePath] = target;
                 }
                 if (!cachedMaterials.TryGetValue(content.sourcePath, out Material material))
@@ -183,11 +187,11 @@ namespace FantasticLog
                     {
                         case MaterialContentParamType.F:
 
-                            material.SetFloat(param.fieldName, float.Parse(param.value));
+                            material?.SetFloat(param.fieldName, float.Parse(param.value));
                             break;
                         case MaterialContentParamType.C:
                             string[] rgbaColor = param.value.Split(',');
-                            material.SetColor(param.fieldName, new Color(float.Parse(rgbaColor[0]), float.Parse(rgbaColor[1]), float.Parse(rgbaColor[2]), float.Parse(rgbaColor[3])));
+                            material?.SetColor(param.fieldName, new Color(float.Parse(rgbaColor[0]), float.Parse(rgbaColor[1]), float.Parse(rgbaColor[2]), float.Parse(rgbaColor[3])));
                             break;
                     }
                 }
