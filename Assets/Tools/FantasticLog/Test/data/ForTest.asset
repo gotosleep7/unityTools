@@ -12,8 +12,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 912e69caddc826944bf3e756312cbc89, type: 3}
   m_Name: ForTest
   m_EditorClassIdentifier: 
-  dataList:
-  - type: 1
-    key: _BaseColor
-    value: 
-    colorValue: {r: 0, g: 0, b: 0, a: 0}
