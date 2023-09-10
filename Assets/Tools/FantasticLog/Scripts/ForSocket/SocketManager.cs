@@ -18,6 +18,7 @@ public class SocketManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        SocketManager tetClass = new();
     }
     public void OpenSocketServer(string address, int port)
     {
@@ -41,78 +42,6 @@ public class SocketManager : MonoBehaviour
     {
         socketServer?.Stop();
     }
-
-
-    // public void OpenSocketServer()
-    // {
-    //     // Create a socket to listen for incoming connections
-    //     serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-    //     IPAddress ipAddress = IPAddress.Parse(address); // Set your desired IP address
-
-    //     IPEndPoint endPoint = new IPEndPoint(ipAddress, port);
-    //     serverSocket.Bind(endPoint);
-    //     serverSocket.Listen(10); // Maximum number of queued connections
-
-    //     Debug.Log("Server started. Waiting for connections...");
-
-    //     // Start accepting connections asynchronously
-    //     serverSocket.BeginAccept(AcceptCallback, null);
-    // }
-
-
-    // public void CloseSocketServer()
-    // {
-    //     serverSocket?.Shutdown(SocketShutdown.Both);
-    //     serverSocket?.Close();
-    // }
-
-    // private void AcceptCallback(IAsyncResult ar)
-    // {
-    //     // Handle the incoming connection
-    //     Socket clientSocket = serverSocket.EndAccept(ar);
-
-    //     // Handle client communication asynchronously
-    //     clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, clientSocket);
-
-    //     // Continue accepting more connections
-    //     serverSocket.BeginAccept(AcceptCallback, null);
-    // }
-
-    // private void ReceiveCallback(IAsyncResult ar)
-    // {
-    //     Socket clientSocket = (Socket)ar.AsyncState;
-
-    //     try
-    //     {
-    //         int bytesRead = clientSocket.EndReceive(ar);
-
-    //         if (bytesRead > 0)
-    //         {
-    //             byte[] data = new byte[bytesRead];
-    //             Array.Copy(buffer, data, bytesRead);
-    //             string message = Encoding.UTF8.GetString(data);
-    //             Debug.Log("Received message: " + message);
-
-    //             // Handle message and send response if needed
-
-    //             // Continue listening for more data
-    //             clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, clientSocket);
-    //         }
-    //         else
-    //         {
-    //             // If no data is received, the connection is likely closed
-    //             Debug.Log("Connection closed by client.");
-    //             clientSocket.Close();
-    //         }
-    //     }
-    //     catch (SocketException ex)
-    //     {
-    //         // Handle socket exception, such as connection reset
-    //         Debug.Log("Socket exception: " + ex.Message);
-    //         clientSocket.Close();
-    //     }
-    // }
 
 }
 
