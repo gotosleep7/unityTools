@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class SaveRuntimMatData : MonoBehaviour
@@ -29,6 +30,13 @@ public class SaveRuntimMatData : MonoBehaviour
             config.dict[matName] = new SaveRuntimeDataForFloat() { value = material.GetFloat(matName) };
         }
         Debug.Log("destory");
+        string path = "Assets/NewMaterial.mat";
+        Material m = new Material(material.shader);
+        m.CopyMatchingPropertiesFromMaterial(material);
+        AssetDatabase.CreateAsset(m, path);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
     }
     [ContextMenu("ApplyConfig")]
     public void ApplyConfig()

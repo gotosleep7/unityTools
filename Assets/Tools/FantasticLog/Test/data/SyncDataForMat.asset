@@ -21,4 +21,4 @@ MonoBehaviour:
       fieldName: _BaseColor
       valueType: 2
       fvalue: 0
-      color: {r: 1, g: 0.15725337, b: 0, a: 1}
+      color: {r: 0.0082473755, g: 1, b: 0, a: 1}
