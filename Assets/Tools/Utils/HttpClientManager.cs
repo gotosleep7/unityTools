@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 public class HttpClientManager
 {
-    private static HttpClientManager httpClientHelper = null;
+    private static HttpClientManager _httpClientHelper = null;
 
-    private HttpClient httpClient;
+    private HttpClient _httpClient;
 
     private HttpClientManager() { }
     public string Token { get; set; }
@@ -18,17 +18,17 @@ public class HttpClientManager
     {
         get
         {
-            if (httpClientHelper == null)
+            if (_httpClientHelper == null)
             {
                 HttpClientManager httpClientHelper = new HttpClientManager();
 
                 //取消使用默认的Cookies
                 HttpClientHandler handler = new HttpClientHandler() { UseCookies = false };
-                httpClientHelper.httpClient = new HttpClient(handler);
+                httpClientHelper._httpClient = new HttpClient(handler);
                 return httpClientHelper;
             }
 
-            return httpClientHelper;
+            return _httpClientHelper;
         }
     }
     public static bool cancleAllDownTask;
@@ -43,7 +43,7 @@ public class HttpClientManager
     }
     public async Task DownloadTexture(string url, Action<byte[]> onSuccess, Action<string> onFailure)
     {
-        HttpResponseMessage response = await httpClient.GetAsync(url);
+        HttpResponseMessage response = await _httpClient.GetAsync(url);
 
         if (response.IsSuccessStatusCode)
         {
@@ -106,6 +106,7 @@ public class HttpClientManager
                 RequestUri = new Uri(url),
                 Method = HttpMethod.Get,
             };
+           
             if (headers != null && headers.Count > 0)
             {
                 request.Headers.Clear();
@@ -114,7 +115,16 @@ public class HttpClientManager
                     request.Headers.Add(header.Key, header.Value);
                 }
             }
-            var response = await Instance.httpClient.SendAsync(request);
+
+            if (!"".Equals(HttpAPI.Instance.Token) && HttpAPI.Instance.Token != null)
+            {
+                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer "+HttpAPI.Instance.Token);
+               // httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpAPI.Instance.Token);
+
+            }
+
+           
+            var response = await _httpClient.SendAsync(request);
             HandlerResponse(response, onSuccess, onFailure);
         }
         catch (System.Exception ex)
@@ -154,7 +164,7 @@ public class HttpClientManager
 
             FormUrlEncodedContent formUrlEncodedContent = new(paramList);
             formUrlEncodedContent = (FormUrlEncodedContent)HandleHeaders(headers, formUrlEncodedContent);
-            var response = await httpClient.PostAsync(new Uri(url), formUrlEncodedContent);
+            var response = await _httpClient.PostAsync(new Uri(url), formUrlEncodedContent);
             HandlerResponse(response, onSuccess, onFailure);
         }
         catch (System.Exception ex)
@@ -201,7 +211,7 @@ public class HttpClientManager
         {
             StringContent stringContent = new(content, Encoding.UTF8);
             stringContent = (StringContent)HandleHeaders(headers, stringContent);
-            HttpResponseMessage response = await httpClient.PostAsync(new Uri(url), stringContent);
+            HttpResponseMessage response = await _httpClient.PostAsync(new Uri(url), stringContent);
             HandlerResponse(response, onSuccess, onFailure);
         }
         catch (Exception ex)
@@ -224,7 +234,7 @@ public class HttpClientManager
 
             stringContent = (StringContent)HandleHeaders(headers, stringContent);
 
-            HttpResponseMessage response = await httpClient.PutAsync(new Uri(url), stringContent);
+            HttpResponseMessage response = await _httpClient.PutAsync(new Uri(url), stringContent);
             HandlerResponse(response, onSuccess, onFailure);
         }
         catch (System.Exception ex)
@@ -253,7 +263,7 @@ public class HttpClientManager
                 Method = HttpMethod.Delete,
                 Content = stringContent
             };
-            var response = await httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
             HandlerResponse(response, onSuccess, onFailure);
         }
         catch (System.Exception ex)
@@ -262,7 +272,7 @@ public class HttpClientManager
             onFailure?.Invoke(ex.Message);
         }
     }
-    public async void UploadFileByBytes(string url, byte[] imageBytes, string fileName, Action<string> onSuccess, Action<string> onFailure, List<KeyValuePair<string, string>> headers = null)
+    public async Task UploadFileByBytes(string url, byte[] imageBytes, string fileName, Action<string> onSuccess, Action<string> onFailure, List<KeyValuePair<string, string>> headers = null)
     {
         // 创建MultipartFormDataContent对象
         using MultipartFormDataContent formData = new();
@@ -273,11 +283,11 @@ public class HttpClientManager
         long timestamp = System.DateTime.UtcNow.Ticks / System.TimeSpan.TicksPerMillisecond;
 
         // 添加图片内容到表单数据
-        formData.Add(imageContent, "image", $"{timestamp}{fileName}.png");
+        formData.Add(imageContent, "file", $"{timestamp}{fileName}.png");
 
         // client.PostAsync($"{httpLogController.Url}/upload", formData);
         // 发送POST请求
-        using HttpResponseMessage response = await httpClient.PostAsync(url, formData);
+        using HttpResponseMessage response = await _httpClient.PostAsync(url, formData);
         HandlerResponse(response, onSuccess, onFailure);
 
     }
@@ -296,7 +306,7 @@ public class HttpClientManager
             };
 
             formData.Add(fileContent, "file", Path.GetFileName(filePath));
-            using HttpResponseMessage response = await httpClient.PostAsync(url, formData);
+            using HttpResponseMessage response = await _httpClient.PostAsync(url, formData);
             HandlerResponse(response, onSuccess, onFailure);
             fileContent.Dispose();
             // response.EnsureSuccessStatusCode();
@@ -304,7 +314,7 @@ public class HttpClientManager
     }
     public async Task DownloadFile(string url, string savePath, Action<float> onProgress, int speed = 1024)
     {
-        using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        using HttpResponseMessage response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
 
         using Stream contentStream = await response.Content.ReadAsStreamAsync();
@@ -335,12 +345,11 @@ public class HttpClientManager
             httpContent.Headers.Clear();
             foreach (var header in headers)
             {
-                // httpContent.Headers.Add(header.Key, header.Value);
                 httpContent.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
-            if ("".Equals(Token) && Token != null)
-                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
         }
+        if (!"".Equals(HttpAPI.Instance.Token) && HttpAPI.Instance.Token != null)
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpAPI.Instance.Token);
         return httpContent;
     }
 
@@ -351,7 +360,7 @@ public class HttpClientManager
     /// </summary>
     public void Release()
     {
-        httpClient.Dispose();
+        _httpClient.Dispose();
     }
 
     /// <summary>
@@ -361,7 +370,7 @@ public class HttpClientManager
     /// <param name="value"></param>
     public void SetDefaultHeaders(string name, string value)
     {
-        httpClient.DefaultRequestHeaders.Add(name, value);
+        _httpClient.DefaultRequestHeaders.Add(name, value);
     }
 
     /// <summary>
@@ -370,7 +379,7 @@ public class HttpClientManager
     /// <param name="name"></param>
     public void RemoveDefaultHeaders(string name)
     {
-        httpClient.DefaultRequestHeaders.Remove(name);
+        _httpClient.DefaultRequestHeaders.Remove(name);
     }
     private async void HandlerResponse(HttpResponseMessage response, Action<string> onSuccess, Action<string> onFailure)
     {
