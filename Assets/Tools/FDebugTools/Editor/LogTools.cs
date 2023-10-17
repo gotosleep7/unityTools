@@ -1,7 +1,7 @@
 using System.Text;
 using UnityEditor;
 using UnityEngine;
-namespace FantasticLog
+namespace FDebugTools
 {
 #if UNITY_EDITOR
 

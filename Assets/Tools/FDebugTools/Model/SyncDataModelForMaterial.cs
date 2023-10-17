@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FantasticLog
+namespace FDebugTools
 {
     public class SyncDataModelForMaterial
     {

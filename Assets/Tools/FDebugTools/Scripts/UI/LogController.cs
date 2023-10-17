@@ -1,6 +1,6 @@
-using FantasticLog;
+using FDebugTools;
 using UnityEngine;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class LogController : MonoBehaviour
     {

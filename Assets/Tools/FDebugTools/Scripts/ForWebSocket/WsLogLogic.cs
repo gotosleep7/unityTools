@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class WsLogLogic : MonoBehaviour
     {

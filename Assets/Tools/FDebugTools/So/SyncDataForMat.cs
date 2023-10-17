@@ -7,7 +7,7 @@ using System.Text;
 using UnityEngine;
 
 
-namespace FantasticLog
+namespace FDebugTools
 {
     [Serializable]
     public class SyncDataParamForMat

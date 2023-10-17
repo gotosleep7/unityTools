@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class LogInfoPanelController : MonoBehaviour
     {

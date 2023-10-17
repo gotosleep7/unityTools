@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class SyncDataModel
     {
@@ -38,7 +38,7 @@ namespace FantasticLog
             // if (messages.Length < 2) return false;
             // syncDataModel.user = messages[0];
             // syncDataModel.msgType = int.Parse(messages[1]);
-
+            // path,classname,parm1^Cparm1^B ^B  ^A
             // string contentStr = syncData;
             string[] allContent = contentStr.Split("^A");
             foreach (var content in allContent)

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace FantasticLog
+namespace FDebugTools
 {
     public class SyncDataItemComparer
     {

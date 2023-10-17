@@ -1,5 +1,5 @@
 using UnityEngine;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class LocalOrNetLogHandler : ILogHandler
     {

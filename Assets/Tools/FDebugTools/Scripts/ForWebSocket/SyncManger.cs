@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace FantasticLog
+namespace FDebugTools
 {
     public class SyncManger : MonoBehaviour
     {
@@ -40,7 +40,9 @@ namespace FantasticLog
                         syncDatas[i].TryConvertInfo(ref message);
                         sb.Append(message);
                         if (!sb.ToString().Equals("")) sb.Append("\r\n");
+                        Debug.Log(sb.ToString());
                     }
+
                 }
                 timer = 0;
                 if (sb.Length > 0) WsLogLogic.Instance.SendWsMessage(sb.ToString());

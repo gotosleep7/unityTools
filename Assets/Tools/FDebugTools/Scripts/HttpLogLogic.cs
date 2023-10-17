@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using UnityEngine.UI;
 using System.Text.RegularExpressions;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class MsgDat
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-namespace FantasticLog
+namespace FDebugTools
 {
     public class TriggerBtn : MonoBehaviour
     {
