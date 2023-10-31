@@ -1,3 +1,4 @@
+using Unity.Entities.UniversalDelegates;
 using UnityEngine;
 namespace FDebugTools
 {
@@ -12,26 +13,64 @@ namespace FDebugTools
                 return _instance;
             }
         }
-        public bool Log2Local { get; set; }
+        private string _tag;
+        private string Tag
+        {
+            get
+            {
+                if (_tag == null)
+                {
+                    if (LogController.Instance.User == null) return null;
+
+                    _tag = $"{LogController.Instance.User}-{SystemInfo.deviceName}-{Application.version}";
+                }
+                return _tag;
+            }
+        }
+        private bool _log2Local;
+        private bool _log2Net;
+        public bool Log2Local
+        {
+            get
+            {
+                return _log2Local;
+            }
+            set
+            {
+                _log2Local = value;
+                Debuger.localLogEnable = value;
+            }
+        }
+        public bool Log2Net
+        {
+            get
+            {
+                return _log2Net;
+            }
+            set
+            {
+                _log2Net = value;
+                Debuger.netLogEnable = value;
+            }
+        }
         private ILogHandler m_DefaultLogHandler = Debug.unityLogger.logHandler;
 
         public void LogException(System.Exception exception, Object context)
         {
             if (Log2Local) m_DefaultLogHandler.LogException(exception, context);
-            HttpLogLogic.Instance.SendLog($"{exception.Message}\r\n{exception.StackTrace}");
         }
 
         public void LogFormat(LogType logType, Object context, string format, params object[] args)
         {
             string v = System.String.Format(format, args);
-            HttpLogLogic.Instance.SendLog(v);
+            Debuger.NetLog(Tag, v, null);
             if (Log2Local) m_DefaultLogHandler.LogFormat(logType, context, format, args);
         }
     }
 
     public static class Debuger
     {
-        public static bool logEnable;
+        public static bool localLogEnable;
         public static bool netLogEnable;
         public static void Log(object message)
         {
@@ -49,7 +88,7 @@ namespace FDebugTools
 
         public static void Log(string tag, object message, Object context)
         {
-            if (logEnable) Debug.unityLogger.Log(LogType.Log, tag, message, context);
+            if (localLogEnable) Debug.unityLogger.Log(LogType.Log, tag, message, context);
         }
 
         public static void LogWarning(string tag, object message, Object context)
@@ -64,7 +103,7 @@ namespace FDebugTools
 
         public static void NetLog(string tag, object message, Object context)
         {
-            HttpLogLogic.Instance.SendLog(message.ToString());
+            if (netLogEnable) LogController.Instance.SendLog($"[{tag}]{message}\r\n{context}");
         }
     }
 }

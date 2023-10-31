@@ -74,47 +74,22 @@ namespace FDebugTools
             Regex regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             return regex.IsMatch(str);
         }
-        public void SendLog(object message)
-        {
-            if (!LogInfoPanelController.isNetLogEnable) return;
-            if (LogInfoPanelController.isWsEnable)
-            {
-                WsLogLogic.Instance.SendWsMessage($"x|0|{message}");
 
-            }
-            else
+        public void Post(string url, object message)
+        {
             {
                 var formContent = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "data",message.ToString()}
             });
-                client.PostAsync($"{logInfoPanelController.Url}/log", formContent);
+                client.PostAsync(url, formContent);
             }
-            // try
-            // {
-            //     // 创建HttpClient实例
-            // if (!LogInfoPanelController.isNetLogEnable) return;
-            //     if (!IsUrl(logInfoPanelController.Url)) return;
-
-            //     var formContent = new FormUrlEncodedContent(new Dictionary<string, string>
-            // {
-            //     { "data",message.ToString()}
-            // });
-            //     client.PostAsync($"{logInfoPanelController.Url}/log", formContent);
-
-            // }
-            // catch (System.Exception e)
-            // {
-            //     Debuger.LogWarning(e);
-            // }
         }
         public void SendLogErr(object message)
         {
-
             try
             {
                 // 创建HttpClient实例
-                if (!LogInfoPanelController.isNetLogEnable) return;
                 if (!IsUrl(logInfoPanelController.Url)) return;
 
                 var formContent = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -140,13 +115,13 @@ namespace FDebugTools
         IEnumerator RecordFrame(string fileName = "image")
         {
             yield return new WaitForEndOfFrame();
-            var screenshotTexture = ScreenCapture.CaptureScreenshotAsTexture();
-            // 对纹理做一些事情
-            byte[] screenshotData = screenshotTexture.EncodeToPNG();
+            // var screenshotTexture = ScreenCapture.CaptureScreenshotAsTexture();
+            // // 对纹理做一些事情
+            // byte[] screenshotData = screenshotTexture.EncodeToPNG();
 
-            SendImage(screenshotData, fileName);
-            // 清理
-            UnityEngine.Object.Destroy(screenshotTexture);
+            // SendImage(screenshotData, fileName);
+            // // 清理
+            // UnityEngine.Object.Destroy(screenshotTexture);
         }
 
         public async void SendImage(byte[] imageBytes, string fileName)

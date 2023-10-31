@@ -16,9 +16,9 @@ namespace FDebugTools
         Button SetBtn;
         Toggle LocalLogBtn;
         Button CaptureBtn;
-        Toggle WsConnectBtn;
-        Toggle NetLogBtn;
-        Toggle SetHandlerBtn;
+        public Toggle WsConnectBtn { get; set; }
+        public Toggle NetLogBtn { get; set; }
+        public Toggle SetHandlerBtn { get; set; }
         Toggle MiniPadBtn;
         Toggle SockerServerBtn;
         public string user;
@@ -26,16 +26,17 @@ namespace FDebugTools
         public int port;
         public int serverPort;
         public static bool logEnable;
-        public static bool isNetLogEnable;
         public static bool isWsEnable;
 
         public string Url => $"http://{address}:{port}";
         public string WsUrl => $"ws://{address}:{port}";
         public string User => user;
-
-        ILogHandler sourceLogHandler;
         // Start is called before the first frame update
         void Start()
+        {
+            Init();
+        }
+        private void Init()
         {
             userText = Parent.Find("user").GetComponent<TMPro.TMP_InputField>();
             addressText = Parent.Find("address").GetComponent<TMPro.TMP_InputField>();
@@ -53,8 +54,8 @@ namespace FDebugTools
             SockerServerBtn = BtnParent.Find("SockerServerBtn").GetComponent<Toggle>();
 
 
-            user = PlayerPrefs.GetString("user", "user1");
-            address = PlayerPrefs.GetString("address", "127.0.0.1");
+            user = PlayerPrefs.GetString("userName");
+            address = PlayerPrefs.GetString("address", "150.158.136.177");
             port = PlayerPrefs.GetInt("port", 8888);
             serverPort = PlayerPrefs.GetInt("serverPort", 9999);
 
@@ -71,8 +72,6 @@ namespace FDebugTools
             SetHandlerBtn.onValueChanged.AddListener(OnSetHandleBtn);
             MiniPadBtn.onValueChanged.AddListener(OnMiniPadBtn);
             SockerServerBtn.onValueChanged.AddListener(OnSockerServerBtn);
-
-            sourceLogHandler = Debug.unityLogger.logHandler;
         }
 
         private void OnSockerServerBtn(bool isOn)
@@ -90,29 +89,19 @@ namespace FDebugTools
 
         private void OnSetHandleBtn(bool isOn)
         {
-            if (isOn)
-            {
-                Debug.unityLogger.logHandler = LocalOrNetLogHandler.Instance;
-                Debug.unityLogger.logEnabled = true;
-            }
-            else
-            {
-                Debug.unityLogger.logHandler = sourceLogHandler;
-            }
-
+            LogController.Instance.SetHandle(isOn);
         }
 
         private async void OnWsConnect(bool isOn)
         {
             if (isOn)
             {
-                await WsLogLogic.Instance.OpenWebsocket();
+                await WsLogLogic.Instance.OpenWebsocket(WsUrl, user);
             }
             else
             {
                 WsLogLogic.Instance.CloseWebsocket();
             }
-            isWsEnable = isOn;
         }
 
         private void OnCapture()
@@ -131,7 +120,7 @@ namespace FDebugTools
                 user = userText.text;
                 address = addressText.text;
                 port = int.Parse(portText.text);
-                PlayerPrefs.SetString("user", user);
+                PlayerPrefs.SetString("userName", user);
                 PlayerPrefs.SetString("address", address);
                 PlayerPrefs.SetInt("port", port);
             }
@@ -143,29 +132,17 @@ namespace FDebugTools
 
         private void OnLocalLog(bool isOn)
         {
-            if (isOn)
-            {
-                logEnable = true;
-                LocalOrNetLogHandler.Instance.Log2Local = true;
-            }
-            else
-            {
-                logEnable = false;
-                LocalOrNetLogHandler.Instance.Log2Local = false;
-            }
+            LocalOrNetLogHandler.Instance.Log2Local = isOn;
         }
         private void OnNetLog(bool isOn)
         {
-            isNetLogEnable = isOn;
+            LocalOrNetLogHandler.Instance.Log2Net = isOn;
         }
 
-
-
-
-        private void OnDestroy()
-        {
-            WsLogLogic.Instance.CloseWebsocket();
-        }
+        // private void OnDestroy()
+        // {
+        //     WsLogLogic.Instance.CloseWebsocket();
+        // }
 
     }
 }

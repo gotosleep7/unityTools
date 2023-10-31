@@ -8,64 +8,96 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Linq;
 namespace FDebugTools
 {
     public class WsLogLogic : MonoBehaviour
     {
         public static WsLogLogic Instance;
 
-        bool connectFlag;
+        public static bool ConnectFlag { get; set; }
         static ClientWebSocket wsClient;
-        LogInfoPanelController logInfoController;
         public UnityEvent<string> OnRecieve;
         Dictionary<string, Type> cachedTypes = new Dictionary<string, Type>();
         Dictionary<string, System.Reflection.MethodInfo> cachedMethods = new();
         Queue<string> messageQueue = new Queue<string>();
+        private CancellationTokenSource cts;
+        public float heartDance = 30;
+        public float timer;
         private void Awake()
         {
             Instance = this;
-            logInfoController = GetComponentInChildren<LogInfoPanelController>(true);
+            cts = new CancellationTokenSource();
         }
-        private void Start()
+
+        public async Task OpenWebsocket(string host, string user)
         {
-        }
-        public async Task OpenWebsocket()
-        {
-            if (connectFlag) return;
-            while (true)
+
+            GetDeviceInfo();
+            if (ConnectFlag) return;
+            ConnectFlag = true;
+            while (!cts.IsCancellationRequested)
             {
                 using (wsClient = new ClientWebSocket())
                 {
                     try
                     {
+                        Debug.Log("open ws");
                         // 连接到WebSocket服务器
-                        await wsClient.ConnectAsync(new Uri($"{logInfoController.WsUrl}/ping/{logInfoController.User}"), CancellationToken.None);
+                        await wsClient.ConnectAsync(new Uri($"{host}/dt/ping/{user}"), cts.Token);
                         // 接收消息的循环
                         while (wsClient.State == WebSocketState.Open)
                         {
                             byte[] buffer = new byte[4096];
-                            WebSocketReceiveResult result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                            WebSocketReceiveResult result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
                             if (result.MessageType == WebSocketMessageType.Text)
                             {
                                 string message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                                 HandleMessage(message);
                             }
-                            connectFlag = true;
+                            // WsState.Instance.ConnectFlag = true;
                         }
                     }
                     catch (WebSocketException ex)
                     {
                         Debug.LogWarning("WebSocket连接异常：" + ex.Message);
                     }
-                    if (!connectFlag) break;
+                    if (!ConnectFlag) break;
                     // 等待一段时间后进行重连
                     await Task.Delay(5000);
                 }
             }
         }
+        private void Update()
+        {
+            if (ConnectFlag)
+            {
+                timer -= Time.deltaTime;
+                if (timer < 0)
+                {
+                    DoSendWsMessage("ping");
+                    timer = heartDance;
 
+                }
+            }
+        }
 
+        private void GetDeviceInfo()
+        {
+            var deviceInfo = new StringBuilder()
+                            .Append("\r\n").Append("设备名称").Append(SystemInfo.deviceName)
+                            .Append("\r\n").Append("操作系统名称和版本号").Append(SystemInfo.operatingSystem)
+                            .Append("\r\n").Append("CPU类型").Append(SystemInfo.processorType)
+                            .Append("\r\n").Append("CPU核心数").Append(SystemInfo.processorCount)
+                            .Append("\r\n").Append("系统内存大小").Append(SystemInfo.systemMemorySize)
+                            .Append("\r\n").Append("GPU名称").Append(SystemInfo.graphicsDeviceName)
+                            .Append("\r\n").Append("GPU内存大小").Append(SystemInfo.graphicsMemorySize)
+                            .Append("\r\n").Append("GPU类型").Append(SystemInfo.graphicsDeviceType)
+                            .Append("\r\n").Append("GPU供应商").Append(SystemInfo.graphicsDeviceVendor)
+                            .Append("\r\n").Append("GPU驱动版本号").Append(SystemInfo.graphicsDeviceVersion)
+                            .Append("\r\n").Append("支持的最大纹理尺寸").Append(SystemInfo.maxTextureSize)
+                            .Append("\r\n").Append("是否支持GPU实例化").Append(SystemInfo.supportsInstancing);
+            Debug.Log(deviceInfo);
+        }
         private void LateUpdate()
         {
             // Debug.Log($"messageQueue.Count={messageQueue.Count}");
@@ -90,13 +122,13 @@ namespace FDebugTools
                 // 创建发送的数据缓冲区
                 if (wsClient != null && wsClient.State == WebSocketState.Open)
                 {
-                    await wsClient?.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                    await wsClient?.SendAsync(buffer, WebSocketMessageType.Text, true, cts.Token);
                 }
             }
             catch (System.Exception e)
             {
-                Debug.Log($"message={message},count={message.Length}");
-                Debug.Log($"bytes={bytes},count={bytes.Length}");
+                Debug.LogError($"message={message},count={message.Length}");
+                Debug.LogError($"bytes={bytes},count={bytes.Length}");
                 throw e;
 
             }
@@ -105,9 +137,11 @@ namespace FDebugTools
         public void HandleMessage(string data)
         {
             string[] messages = data.Split("\r\n");
+            Debug.Log($"wsMsg={data}");
             foreach (var message in messages)
             {
                 if ("".Equals(message)) continue;
+                if ("pong".Equals(message)) continue;
                 try
                 {
                     SyncDataModel syncDataModel = new SyncDataModel(message);
@@ -121,11 +155,14 @@ namespace FDebugTools
                             if (SyncDataModelForRpc.TryConvert(syncDataModel.contentStr, out SyncDataModelForRpc content))
                                 HandleComponent(content);
                             break;
+                        default:
+                            break;
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(e.StackTrace);
+
+                    Debug.LogError(e);
                 }
             }
 
@@ -220,9 +257,9 @@ namespace FDebugTools
         {
             try
             {
-
-                connectFlag = false;
-                await wsClient?.CloseAsync(WebSocketCloseStatus.NormalClosure, "关闭连接", CancellationToken.None);
+                LogController.Instance.SendLog("close ws");
+                ConnectFlag = false;
+                await wsClient?.CloseAsync(WebSocketCloseStatus.NormalClosure, "关闭连接", cts.Token);
             }
             catch (System.Exception e)
             {
@@ -232,6 +269,7 @@ namespace FDebugTools
         private void OnDestroy()
         {
             CloseWebsocket();
+            cts.Cancel();
         }
     }
 }

@@ -25,6 +25,8 @@ public class SaveRuntimMatData : MonoBehaviour
     }
     private void OnDestroy()
     {
+#if UNITY_EDITOR
+
         foreach (var matName in allMatPropertyNamesForFloat)
         {
             config.dict[matName] = new SaveRuntimeDataForFloat() { value = material.GetFloat(matName) };
@@ -36,7 +38,7 @@ public class SaveRuntimMatData : MonoBehaviour
         AssetDatabase.CreateAsset(m, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-
+#endif
     }
     [ContextMenu("ApplyConfig")]
     public void ApplyConfig()
