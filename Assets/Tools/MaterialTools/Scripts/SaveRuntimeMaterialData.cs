@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using static UnityEditor.Progress;
 
 public class SaveRuntimeMaterialData : MonoBehaviour
 {
@@ -25,7 +22,9 @@ public class SaveRuntimeMaterialData : MonoBehaviour
 
         DicMat = new Dictionary<string, Material>();
         // allMatPropertyNames = mr.sharedMaterial.GetPropertyNames(MaterialPropertyType.Int);
+#if UNITY_EDITOR
         UpdateTempData();
+#endif
 
     }
 

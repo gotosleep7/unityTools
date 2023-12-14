@@ -3,14 +3,17 @@ using System.Buffers.Text;
 using System.Text;
 using FDebugTools;
 using TMPro;
-using Unity.Core;
-using Unity.Entities.UniversalDelegates;
 using UnityEngine;
 using UnityEngine.UI;
 namespace FDebugTools
 {
+    enum LogMode
+    {
+        ServerToClient, ClientToServer, Http
+    }
     public class LogController : MonoBehaviour
     {
+        [SerializeField] LogMode logMode;
         public static LogController Instance;
         public TMP_Text id;
         ILogHandler sourceLogHandler;
@@ -30,15 +33,20 @@ namespace FDebugTools
                 User = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
                 PlayerPrefs.SetString("userName", User);
             }
-            id.text = $"{User}-{Application.version}";
+            if (id != null)
+                id.text = $"{User}-{Application.version}";
         }
-        private async void Start()
+        private void Start()
         {
             // FDTMessage fDTMessage = new FDTMessage();
             SetHandle(true);
-            LocalOrNetLogHandler.Instance.Log2Local = true;
+            LocalOrNetLogHandler.Instance.Log2Local = false;
             LocalOrNetLogHandler.Instance.Log2Net = true;
-            await wsLogLogic.OpenWebsocket("ws://" + ip, User);
+            // await wsLogLogic.OpenWebsocket("ws://" + ip, User);
+        }
+        private void Update()
+        {
+            Debug.Log("111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff");
         }
 
         public void SetHandle(bool isOn)
@@ -57,7 +65,34 @@ namespace FDebugTools
 
         public void SendLog(object message)
         {
-            HttpLogLogic.Instance.Post($"http://{ip}/{logUri}", $"{message}");
+            switch (logMode)
+            {
+                case LogMode.ServerToClient:
+                    SendLogForServerToClient(message);
+                    break;
+                case LogMode.ClientToServer:
+                    SendLogForClientToServer(message);
+                    break;
+                case LogMode.Http:
+                    SendLogForHttp(message);
+                    break;
+            }
+
         }
+        public void SendLogForClientToServer(object message)
+        {
+            SocketClientManager.Instance?.SendMessageToServer(message.ToString());
+        }
+
+        public void SendLogForServerToClient(object message)
+        {
+            SocketManager.Instance?.PushMessageToClient(message.ToString());
+        }
+        public void SendLogForHttp(object message)
+        {
+            HttpLogLogic.Instance?.Post($"http://{ip}/{logUri}", $"{message}");
+        }
+
+
     }
 }

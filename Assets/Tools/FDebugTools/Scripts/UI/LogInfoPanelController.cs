@@ -76,10 +76,10 @@ namespace FDebugTools
 
         private void OnSockerServerBtn(bool isOn)
         {
-            if (isOn)
-                SocketManager.Instance.OpenSocketServer(address, serverPort);
-            else
-                SocketManager.Instance.CloseSocketServer();
+            // if (isOn)
+            //     SocketManager.Instance.OpenSocketServer(address, serverPort);
+            // else
+            //     SocketManager.Instance.CloseSocketServer();
         }
 
         private void OnMiniPadBtn(bool isOn)
@@ -120,9 +120,11 @@ namespace FDebugTools
                 user = userText.text;
                 address = addressText.text;
                 port = int.Parse(portText.text);
+                serverPort = int.Parse(serverPortText.text);
                 PlayerPrefs.SetString("userName", user);
                 PlayerPrefs.SetString("address", address);
                 PlayerPrefs.SetInt("port", port);
+                PlayerPrefs.SetInt("serverPort", serverPort);
             }
             else
             {

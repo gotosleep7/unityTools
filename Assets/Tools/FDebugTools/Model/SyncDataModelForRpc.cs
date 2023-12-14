@@ -4,6 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace FDebugTools
 {
+    public class SyncDataConvertException : Exception
+    {
+        private string message;
+        public SyncDataConvertException() { }
+        public SyncDataConvertException(string message)
+        {
+            this.message = message;
+        }
+        public override string Message { get; }
+    }
     public class SyncDataModel
     {
         public string user;
@@ -12,10 +22,17 @@ namespace FDebugTools
 
         public SyncDataModel(string dataStr)
         {
-            string[] messages = dataStr.Split("|");
-            user = messages[0];
-            msgType = int.Parse(messages[1]);
-            contentStr = messages[2];
+            try
+            {
+                string[] messages = dataStr.Split("|");
+                user = messages[0];
+                msgType = int.Parse(messages[1]);
+                contentStr = messages[2];
+            }
+            catch (System.Exception)
+            {
+                throw new SyncDataConvertException("Convert fail");
+            }
         }
 
 
