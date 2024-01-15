@@ -102,8 +102,8 @@ namespace FDebugTools
 
         public static void NetLog(string tag, object message, Object context)
         {
-            // if (netLogEnable) LogController.Instance.SendLog($"[{tag}]{message}\r\n{context}");
-            if (netLogEnable) LogController.Instance.SendLog($"[{tag}]{message}\r\n");
+            if (netLogEnable) LogController.Instance.SendLog($"[{tag}]{message}\r\n{context}");
+            // if (netLogEnable) LogController.Instance.SendLog($"[{tag}]{message}\r\n");
         }
     }
 }

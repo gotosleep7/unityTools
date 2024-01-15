@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -10,9 +11,18 @@ using UnityEngine;
 using UnityEngine.Events;
 namespace FDebugTools
 {
-    public class SocketClient1 : MonoBehaviour
+
+    [Serializable]
+    public class ConfigModel
     {
-        public static SocketClient1 Instance;
+        public string host;
+        public int port;
+        public bool localLog;
+        public bool netLog;
+    }
+    public class SocketClient : MonoBehaviour
+    {
+        public static SocketClient Instance;
         public static bool ConnectFlag { get; set; }
         static TcpClient tcpClient;
         public UnityEvent<string> OnRecieve;
@@ -23,12 +33,14 @@ namespace FDebugTools
         [SerializeField] private float heartDance = 30;
         [SerializeField] private float timer;
 
-        public string host = "127.0.0.1";
-        public int port = 8989;
+        [SerializeField] private string host = "127.0.0.1";
+        [SerializeField] private int port = 8989;
+
+        public bool LocalLog { get; private set; } = true;
+        public bool NetLog { get; private set; } = false;
         private void Awake()
         {
             Instance = this;
-
         }
         private void Start()
         {
@@ -36,10 +48,32 @@ namespace FDebugTools
         }
         public void OpenWebsocket()
         {
-            DoOpenWebsocket();
+            string configPath = Application.streamingAssetsPath + "/config.txt";
+            // string configPath = "D:\UnityPrivateProjects\unityTools\Assets\StreamAssets\config.txt";
+            if (File.Exists(configPath))
+            {
+                // 使用 StreamReader 读取 JSON 文件内容
+                using (StreamReader reader = new StreamReader(configPath))
+                {
+                    string configString = reader.ReadToEnd();
+                    ConfigModel config = JsonUtility.FromJson<ConfigModel>(configString);
+                    DoOpenWebsocket(config.host, config.port);
+                    LocalLog = config.localLog;
+                    NetLog = config.netLog;
+                }
+            }
+            else
+            {
+                Debug.LogError($"{configPath} Config file not found!");
+            }
         }
 
-        public async Task DoOpenWebsocket()
+        public void OpenWebsocketByInspactor()
+        {
+            DoOpenWebsocket(host, port);
+        }
+
+        public async Task DoOpenWebsocket(string host, int port)
         {
             GetDeviceInfo();
             cts = new CancellationTokenSource();
@@ -55,7 +89,7 @@ namespace FDebugTools
                         Debug.Log("open socket");
                         // 连接到WebSocket服务器
 
-                        await tcpClient.ConnectAsync(this.host, this.port);
+                        await tcpClient.ConnectAsync(host, port);
                         Debug.Log($"tcpClient.Connected=={tcpClient.Connected}");
                         // 接收消息的循环
                         while (tcpClient.Connected)
@@ -66,8 +100,8 @@ namespace FDebugTools
                             Debug.Log($"resultCount={resultCount}");
                             if (resultCount == 0) continue;
                             // string message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
-                            string message = System.Text.Encoding.UTF8.GetString(buffer, 0, resultCount);
-                            HandleMessage(message);
+                            // string message = System.Text.Encoding.UTF8.GetString(buffer, 0, resultCount);
+                            HandleMessage(buffer);
                             // WsState.Instance.ConnectFlag = true;
                         }
                     }
@@ -156,33 +190,14 @@ namespace FDebugTools
             {
                 if ("".Equals(message)) continue;
                 if ("pong".Equals(message)) continue;
-                try
-                {
-                    SyncDataModel syncDataModel = new SyncDataModel(message);
-                    switch (syncDataModel.msgType)
-                    {
-                        case 1:
-                            if (SyncDataModelForMaterial.TryConvert(syncDataModel.contentStr, out SyncDataModelForMaterial syncDataModelForMaterial))
-                                HandleMaterial(syncDataModelForMaterial);
-                            break;
-                        case 2:
-                            if (SyncDataModelForRpc.TryConvert(syncDataModel.contentStr, out SyncDataModelForRpc content))
-                                HandleComponent(content);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                catch (SyncDataConvertException e)
-                {
-                    Debug.LogWarning(e);
-                    Debug.Log(message);
-                    // 消息是未知类型，直接转发出去
-                    OnRecieve?.Invoke(message);
-                    continue;
-                }
-
+                OnRecieve?.Invoke(message);
             }
+
+        }
+        public void HandleMessage(byte[] data)
+        {
+            // Debug.Log($"socketMsg={data}");
+            OnRecieve?.Invoke(System.Text.Encoding.UTF8.GetString(data, 0, data.Length));
 
         }
 
@@ -265,7 +280,7 @@ namespace FDebugTools
         }
 
 
-        public void SendWsMessage(string message)
+        public void SendMessageToServer(string message)
         {
             messageQueue.Enqueue(message);
 

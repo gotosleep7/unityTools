@@ -23,7 +23,7 @@ public class SocketManager : MonoBehaviour
     public void OpenSocketServer()
     {
         socketServer = new SocketServer(address, port);
-        socketServer.Start();
+        socketServer.StartListenForClients();
 
     }
     void Update()

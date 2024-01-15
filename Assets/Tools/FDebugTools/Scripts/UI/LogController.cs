@@ -1,10 +1,6 @@
 using System;
-using System.Buffers.Text;
-using System.Text;
-using FDebugTools;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 namespace FDebugTools
 {
     enum LogMode
@@ -22,6 +18,7 @@ namespace FDebugTools
         // string ip = "127.0.0.1:8888";
         string logUri = "dt/log";
         public string User;
+        private float testTimer;
         private void Awake()
         {
             Instance = this;
@@ -40,13 +37,18 @@ namespace FDebugTools
         {
             // FDTMessage fDTMessage = new FDTMessage();
             SetHandle(true);
-            LocalOrNetLogHandler.Instance.Log2Local = false;
+            LocalOrNetLogHandler.Instance.Log2Local = true;
             LocalOrNetLogHandler.Instance.Log2Net = true;
             // await wsLogLogic.OpenWebsocket("ws://" + ip, User);
         }
         private void Update()
         {
-            Debug.Log("111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff111111ff");
+            testTimer += Time.deltaTime;
+            if (testTimer > 2f)
+            {
+                testTimer = 0f;
+                Debug.Log("Client debug message Client debug message Client debug message Client debug message Client debug message Client debug message Client debug message Client debug message Client debug message ");
+            }
         }
 
         public void SetHandle(bool isOn)
@@ -81,7 +83,7 @@ namespace FDebugTools
         }
         public void SendLogForClientToServer(object message)
         {
-            SocketClientManager.Instance?.SendMessageToServer(message.ToString());
+            SocketClient.Instance?.SendMessageToServer(message.ToString());
         }
 
         public void SendLogForServerToClient(object message)

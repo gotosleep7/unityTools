@@ -10,17 +10,22 @@ using UnityEngine;
 public class SocketServer
 {
     private TcpListener listener; // 用于监听客户端连接请求的对象
-    private Thread listenThread; // 用于执行监听任务的线程
     TcpClient currentClient;
     CancellationTokenSource cts;
 
     public void PushMessageToClient(string message)
     {
+        if (currentClient == null) return;
+        // Debug.Log($"currentClient={currentClient == null}");
+        byte[] buffer = Encoding.UTF8.GetBytes(message);
+        PushMessageToClient(buffer);
+    }
+    public void PushMessageToClient(byte[] message)
+    {
         // Debug.Log($"currentClient={currentClient == null}");
         if (currentClient == null) return;
         NetworkStream clientStream = currentClient.GetStream();
-        byte[] buffer = Encoding.UTF8.GetBytes(message);
-        clientStream?.Write(buffer, 0, buffer.Length);
+        clientStream?.Write(message, 0, message.Length);
         clientStream?.Flush();
     }
 
@@ -31,18 +36,12 @@ public class SocketServer
         Debug.Log($"listen to {address}:{port}");
         // 初始化监听对象，使用本机IP地址和指定端口号
         listener = new TcpListener(IPAddress.Parse(address), port);
-        // 创建监听线程
-        // listenThread = new Thread(new ThreadStart(ListenForClients));
-        // 设置为后台线程
-        // listenThread.IsBackground = true;
-        // 设置运行标志为true
     }
 
-    public void Start()
+    public void StartListenForClients()
     {
         // 启动监听线程
         Task.Run(() => ListenForClients(cts));
-        // listenThread.Start();
     }
 
 
@@ -66,12 +65,6 @@ public class SocketServer
                 // 接受一个客户端连接，如果没有连接请求则阻塞
                 TcpClient client = listener.AcceptTcpClient();
                 Task.Run(() => HandleClientConn(client));
-                // 创建一个新的线程来处理该客户端的通信任务
-                // Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClientConn));
-                // 设置为后台线程
-                // clientThread.IsBackground = true;
-                // 启动该线程，传入客户端对象作为参数
-                // clientThread.Start(client);
             }
             catch (SocketException)
             {
