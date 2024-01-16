@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveWithPoints : MonoBehaviour
+public class MoveAlongWayPointsExt : MonoBehaviour
 {
     public event EventHandler<float> OnProcessChanged;
     [SerializeField] private List<Transform> wayPoints;
@@ -13,12 +13,9 @@ public class MoveWithPoints : MonoBehaviour
     [SerializeField] AnimationCurve animationCurve;
     [Header("For Debug")]
     [SerializeField] bool drawPath;
+    [SerializeField] List<WayPointsConfigSO> wayConfigList;
     private float process;
     private float currentProcess;
-    private float stepSize;
-    private int stepAmout;
-    private float pointStepSize;
-    private int pointStepAmout;
     private int currentStep;
     private int pointCurrentStep;
     int switchingFlag;
@@ -26,14 +23,16 @@ public class MoveWithPoints : MonoBehaviour
     bool breakAnima;
     float inTimer;
     private List<Vector3> retPoints;
-
     private void Start()
     {
-        stepAmout = wayPoints.Count - 1;
-        stepSize = 1f / stepAmout;
-        GenerateBezierCurves();
-        SetDataByProcess(0, moveTarget);
-        OnProcessChanged?.Invoke(this, 0);
+        var c = wayConfigList[0];
+        // c.InitPoints();
+        transform.position = c.GetWayPoints()[0];
+        // stepAmout = wayPoints.Count - 1;
+        // stepSize = 1f / stepAmout;
+        // GenerateBezierCurves();
+        // SetDataByProcess(0, moveTarget);
+        // OnProcessChanged?.Invoke(this, 0);
     }
 
     public void SetDataByProcess(float value, Transform trans)
@@ -43,22 +42,22 @@ public class MoveWithPoints : MonoBehaviour
     }
     private void SetPosition(float value, Transform trans)
     {
-        pointCurrentStep = (int)(value / pointStepSize);
-        float lerpValue = value % pointStepSize / pointStepSize;
-        if (pointCurrentStep == pointStepAmout) return;
-        trans.localPosition = Vector3.Lerp(retPoints[pointCurrentStep], retPoints[pointCurrentStep + 1], lerpValue);
+        // pointCurrentStep = (int)(value / pointStepSize);
+        // float lerpValue = value % pointStepSize / pointStepSize;
+        // if (pointCurrentStep == pointStepAmout) return;
+        // trans.localPosition = Vector3.Lerp(retPoints[pointCurrentStep], retPoints[pointCurrentStep + 1], lerpValue);
     }
     private void SetRotation(float value, Transform trans)
     {
-        if (lookTarget != null)
-        {
-            trans.LookAt(lookTarget);
-            return;
-        }
-        currentStep = (int)(value / stepSize);
-        float lerpValue = value % stepSize / stepSize;
-        if (currentStep == stepAmout) return;
-        if (lookTarget == null) trans.rotation = Quaternion.Lerp(wayPoints[currentStep].rotation, wayPoints[currentStep + 1].rotation, lerpValue);
+        // if (lookTarget != null)
+        // {
+        //     trans.LookAt(lookTarget);
+        //     return;
+        // }
+        // currentStep = (int)(value / stepSize);
+        // float lerpValue = value % stepSize / stepSize;
+        // if (currentStep == stepAmout) return;
+        // if (lookTarget == null) trans.rotation = Quaternion.Lerp(wayPoints[currentStep].rotation, wayPoints[currentStep + 1].rotation, lerpValue);
     }
     private void Update()
     {
@@ -75,7 +74,7 @@ public class MoveWithPoints : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             Debug.Log("相机移动路径生成调试信息");
-            GenerateBezierCurves();
+            // GenerateBezierCurves();
         }
         if (currentProcess != process)
         {
@@ -147,22 +146,6 @@ public class MoveWithPoints : MonoBehaviour
         }
     }
 
-    // [ContextMenu("GeneratePoints")]
-    void GenerateBezierCurves()
-    {
-        retPoints = new List<Vector3>();
-        for (int i = 0; i < wayPoints.Count - 1; i++)
-        {
-            retPoints.AddRange(BezierUtils.GetCubicBeizerList(
-                wayPoints[i].position,
-                BezierUtils.AutoCalculateCubicBezierPoint(wayPoints[i].position, wayPoints[i + 1].position),
-                wayPoints[i + 1].position,
-                numberOfPoints
-              ));
-        }
-        pointStepAmout = retPoints.Count - 1;
-        pointStepSize = 1f / pointStepAmout;
-    }
 
     #region For Debug
     void OnDrawGizmos()
