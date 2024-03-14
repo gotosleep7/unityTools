@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 0
+    path: Assets/Tools/FDebugTools/Scenes/SocketServer.unity
+    guid: 3a10fbed9718c4346b8a382428e6372a
+  - enabled: 1
+    path: Assets/Tools/FDebugTools/Scenes/SocketClient.unity
+    guid: 3237ce4431666a44595ed4a81bc6eeba
+  - enabled: 0
+    path: Assets/Tools/FDebugTools/Scenes/FantasticLog_SampleScene.unity
+    guid: 527d14bf6f0ce994297289619b03520e
   m_configObjects: {}
